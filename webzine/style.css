@@ -1,41 +1,263 @@
+/* =========================================================
+   PISONET webzine: styles for the title screen and about page
+   (the level experiments have their own CSS in levels/)
+   ========================================================= */
+
+/* Flor de Ruina by Felipe Sanzana (SIL Open Font License, see fonts/flor-de-ruina/OFL.txt).
+   Five styles that follow a flower's life cycle. Each one gets its own name here,
+   so you can switch between them by changing --display below. */
 @font-face {
-    font-family: "Tiny5x3";
-    src: url("fonts/TINY5x3-160.woff2") format("woff2");
+    font-family: "Flor de Ruina Semilla";
+    src: url("fonts/flor-de-ruina/FlorDeRuina-Semilla.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Flor de Ruina Germen";
+    src: url("fonts/flor-de-ruina/FlorDeRuina-Germen.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Flor de Ruina Flor";
+    src: url("fonts/flor-de-ruina/FlorDeRuina-Flor.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Flor de Ruina Ruina";
+    src: url("fonts/flor-de-ruina/FlorDeRuina-Ruina.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Flor de Ruina Fractura";
+    src: url("fonts/flor-de-ruina/FlorDeRuina-Fractura.woff2") format("woff2");
+}
+
+/* ---------- design tokens: change a value once, it changes everywhere ---------- */
+:root {
+    --red: #e30000;       /* PISO */
+    --green: #59ff00;     /* WiFi */
+    --ink: #000;
+    /* try: Semilla, Germen, Flor, Ruina, or Fractura */
+    --display: "Flor de Ruina Flor", serif;
+    --plain: Arial, Helvetica, sans-serif;
+}
+
+/* border-box: width includes padding + border, so sizes are predictable */
+* {
+    box-sizing: border-box;
 }
 
 body {
     margin: 0;
+    min-height: 100vh;
+    background: var(--ink);
+    color: white;
+    font-family: var(--plain);
+    animation: power-on 0.6s ease-out; /* every page "boots up" when it loads */
 }
 
+@keyframes power-on {
+    from { opacity: 0; filter: brightness(3); }
+    to   { opacity: 1; filter: brightness(1); }
+}
+
+/* =========================================================
+   1. TITLE SCREEN (index.html)
+   ========================================================= */
+
 .background {
-    height: 100vh;
-    background-image: url("images/background.jpg");
+    min-height: 100vh;
+    /* the gradient sits on top of the photo to darken it so the title pops */
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.75)),
+        url("images/background.jpg");
     background-size: cover;
     background-position: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 24px;
+    padding: 24px;
 }
 
 .piso,
-.wifi,
-.slash{
+.wifi {
     margin: 0;
-    font-family: "Tiny5x3", sans-serif;
-    font-size: 300px;
+    font-family: var(--display);
+    /* clamp(smallest, preferred, largest): scales with the window */
+    font-size: clamp(56px, min(16vw, 22vh), 260px);
+    font-weight: normal;
     text-shadow: 4px 4px 4px black;
+    line-height: 1;
+    text-align: center;
+}
+
+.piso { color: var(--red); }
+.wifi { color: var(--green); }
+
+/* the row holding the machine panel and the coin tray */
+.insert {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* the front of the machine */
+.coin-machine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #1b1b1b;
+    border: 4px solid #555;
+    border-radius: 12px;
+    padding: 12px 28px 20px;
+    box-shadow: inset 0 0 0 2px #000, 6px 6px 0 #000;
+}
+
+.insert-text {
+    margin: 0 0 8px;
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--green);
+    animation: blink 1s steps(1) infinite;
+}
+
+/* steps(1) = jump between on/off instead of fading, like a cheap LED */
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* the window the coin falls through: anything below its bottom edge is cut off */
+.coin-area {
+    width: 120px;
+    height: 100px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.slot {
+    width: 100px;
+    height: 10px;
+    background: black;
+    border-radius: 5px;
+    box-shadow: inset 0 3px 4px #444;
+    transition: box-shadow 0.2s, background 0.2s;
+}
+
+/* glows while you hold the coin near it (JS adds/removes .ready) */
+.slot.ready {
+    box-shadow: inset 0 3px 4px #444, 0 0 14px var(--green);
+}
+
+/* lights up after a coin is accepted */
+.slot.accepted {
+    background: var(--green);
+}
+
+/* where the coin waits before you pick it up */
+.coin-tray {
+    width: 130px;
+    height: 130px;
+    border: 3px dashed #777;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coin {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    /* the real 1-piso coin photo; "contain" fits the whole coin inside the button */
+    background: url("images/peso.png") center / contain no-repeat;
+    border: none;
+    padding: 0;
+    cursor: grab;
+    touch-action: none;   /* phones: dragging the coin shouldn't scroll the page */
+    user-select: none;
+    position: relative;
+    z-index: 10;          /* float above everything while being dragged */
+}
+
+.coin.dragging {
+    cursor: grabbing;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* the drop: turn edge-on, then fall through the bottom edge of .coin-area */
+@keyframes insert {
+    0%   { transform: translateY(0) scaleX(1); }
+    40%  { transform: translateY(10px) scaleX(0.15); }
+    100% { transform: translateY(140px) scaleX(0.15); }
+}
+
+.coin.inserted {
+    animation: insert 0.8s ease-in forwards;
+}
+
+.status {
+    min-height: 1.4em;
+    margin: 0;
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--green);
+    text-align: center;
+    text-shadow: 2px 2px 0 black;
+}
+
+.corner-link {
+    position: fixed;
+    bottom: 20px;
+    left: 24px;
+    color: white;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   2. ABOUT (about.html)
+   ========================================================= */
+
+.page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 90px 24px 60px;
+}
+
+.page h1 {
+    margin: 0 0 8px;
+    font-family: var(--display);
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: normal;
+    color: var(--red);
     line-height: 1;
 }
 
-.piso {
-    color: #e30000;
+.page p {
+    font-size: 18px;
+    line-height: 1.5;
+    max-width: 60ch;   /* ch = width of a "0"; about 60 keeps lines readable */
 }
 
-.wifi {
-    color: #59ff00;
+.page a {
+    color: var(--green);
 }
 
-.body-text {
 
+/* =========================================================
+   3. MEDIA QUERIES: smaller screens
+   ========================================================= */
+
+@media (max-width: 600px) {
+    /* the machine and coin tray stack vertically on phones */
+    .insert { flex-direction: column-reverse; gap: 24px; }
+}
+
+/* people who turn off motion in their OS settings don't get the blinking */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
 }
